@@ -1,0 +1,14 @@
+# This file defines who owns what in this repository
+# and who has permissions to approve changes
+
+# Default owners for everything in the repo
+* @repo-admin @maintainers
+
+# Workflow files can only be modified by administrators
+/.github/workflows/ @repo-admin
+
+# Issue templates and configurations
+/.github/ISSUE_TEMPLATE/ @repo-admin @maintainers
+
+# Explicitly deny permissions for AI assistants to modify labeling configurations
+# This is a comment for documentation purposes as GitHub doesn't support negative patterns in CODEOWNERS

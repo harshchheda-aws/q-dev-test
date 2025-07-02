@@ -1,0 +1,52 @@
+name: Issue Labeling Workflow
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+  pull_request:
+    types: [opened, edited, reopened]
+
+jobs:
+  process-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Check user role and permissions
+        id: check-permissions
+        run: |
+          # Define roles that can label issues
+          AUTHORIZED_ROLES=("admin" "maintainer" "contributor")
+          
+          # Check if the actor is a generative AI assistant
+          if [[ "${{ github.actor }}" == *"ai-assistant"* || "${{ github.actor }}" == *"bot"* ]]; then
+            echo "User is identified as a generative AI assistant"
+            echo "::set-output name=can_label::false"
+          else
+            # For human users, we would check their role
+            # This is a simplified example - in a real scenario, you would use GitHub API
+            # to check the user's role in the repository
+            echo "User is not a generative AI assistant"
+            echo "::set-output name=can_label::true"
+          fi
+
+      - name: Apply labels if authorized
+        if: steps.check-permissions.outputs.can_label == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // This script would contain logic to apply labels based on issue content
+            // For demonstration purposes, we're just showing the permission check
+            console.log('User has permission to apply labels');
+            
+      - name: Log unauthorized attempt
+        if: steps.check-permissions.outputs.can_label == 'false'
+        run: |
+          echo "Unauthorized attempt to label issues by a generative AI assistant has been blocked."
+          echo "According to project policy, generative AI assistants do not have permission to label issues."
