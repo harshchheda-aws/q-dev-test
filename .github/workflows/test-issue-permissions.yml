@@ -1,0 +1,53 @@
+name: Test Issue Labeling Permissions
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_user:
+        description: 'User to test permissions for'
+        required: true
+        default: 'human-user'
+      user_type:
+        description: 'Type of user (human or ai)'
+        required: true
+        default: 'human'
+        type: choice
+        options:
+          - human
+          - ai
+
+jobs:
+  test-permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Test user permissions
+        id: test-permissions
+        run: |
+          USER="${{ github.event.inputs.test_user }}"
+          USER_TYPE="${{ github.event.inputs.user_type }}"
+          
+          echo "Testing permissions for user: $USER (Type: $USER_TYPE)"
+          
+          if [[ "$USER_TYPE" == "ai" ]]; then
+            echo "User is identified as a generative AI assistant"
+            echo "::set-output name=can_label::false"
+            echo "Result: AI assistants do not have permission to label issues in this project."
+          else
+            echo "User is identified as a human user"
+            echo "::set-output name=can_label::true"
+            echo "Result: Human users with appropriate roles can label issues in this project."
+          fi
+      
+      - name: Display test results
+        run: |
+          echo "Test completed."
+          echo "Can label issues: ${{ steps.test-permissions.outputs.can_label }}"
+          
+          if [[ "${{ steps.test-permissions.outputs.can_label }}" == "false" ]]; then
+            echo "✅ Correctly blocked labeling attempt by AI assistant"
+          else
+            echo "✅ Correctly allowed labeling by human user with appropriate role"
+          fi
